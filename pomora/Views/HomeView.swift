@@ -11,6 +11,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var showAddItemSheet = false
     @State private var items: [GroceryItem] = [
         GroceryItem(name: "Eggs", quantity: 6, daysUntilExpiration: 2),
         GroceryItem(name: "Oranges", quantity: 3, daysUntilExpiration: 3),
@@ -74,7 +75,7 @@ struct HomeView: View {
                     }
                     
                     Button(action: {
-                        //todo dev "add new item" button
+                        showAddItemSheet = true
                     }){
                         Text("ADD NEW ITEM")
                             .font(.headline)
@@ -87,6 +88,13 @@ struct HomeView: View {
                     .padding()
                 }
             }
+        }
+        .sheet(isPresented: $showAddItemSheet) {
+            AddItemSheet { name, qty in
+                items.append(GroceryItem(name: name, quantity: qty, daysUntilExpiration: 7))
+            }
+            .presentationDetents([.height(500), .large])
+            .presentationDragIndicator(.hidden)
         }
     }
 }
