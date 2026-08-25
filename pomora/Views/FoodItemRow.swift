@@ -7,7 +7,8 @@
 import SwiftUI
 
 struct FoodItemRow: View{
-    @State var item: GroceryItem
+    @Binding var item: GroceryItem
+    var onQuantityZero: () -> Void
     
     var body : some View {
         HStack(spacing: 0){
@@ -33,6 +34,11 @@ struct FoodItemRow: View{
                     Stepper(value: $item.quantity, in: 0...99){
                         Text("\(item.quantity) ct")
                             .foregroundColor(.secondary)
+                    }
+                    .onChange(of: item.quantity){ _, newValue in
+                        if(newValue == 0){
+                            onQuantityZero()
+                        }
                     }
                 }
             }

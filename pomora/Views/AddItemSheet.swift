@@ -23,7 +23,10 @@ struct AddItemSheet: View {
     
     var suggestions: [String] {
         guard !itemName.isEmpty else { return [] }
-        return commonGroceryItems.filter {$0.localizedCaseInsensitiveContains(itemName)}
+        return commonGroceryItems
+            .filter {$0.localizedCaseInsensitiveContains(itemName)}
+            .prefix(5)
+            .map{ $0 }
     }
     
     var onAdd: (String, Int) -> Void
@@ -35,119 +38,151 @@ struct AddItemSheet: View {
                 .frame(width: 40, height: 5)
                 .padding(.top, 8)
             
-            HStack {
-                Text("Add New Item")
-                    .font(.title2.bold())
-                Spacer()
-                Button(action: { dismiss() }){
-                    Image(systemName: "xmark")
-                        .font(.title3)
-                        .foregroundColor(.primary)
-                }
-            }
-            .padding()
-            
-            Divider()
-            
-            VStack(alignment: .leading, spacing: 8){
-                Text("Item Name")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.top)
-                
+            VStack(alignment: .leading, spacing: 0){
                 HStack {
-                    TextField("Type item to add...", text: $itemName)
-                        .focused($isSearchFocused)
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                    Text("Add New Item")
+                        .font(.title2.bold())
+                    Spacer()
+                    Button(action: { dismiss() }){
+                        Image(systemName: "xmark")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                    }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
+                .padding(.vertical)
                 
-                if !itemName.isEmpty {
-                    VStack(spacing: 0){
-                        ForEach(suggestions, id: \.self){ suggestion in
+                //adds horizontal line underneath
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 8){
+                    Text("Item Name")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.top)
+                    
+                    HStack {
+                        TextField("Type item to add...", text: $itemName)
+                            .focused($isSearchFocused)
+                            
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 8)
+                    //adds horizontal line underneath
+                    Divider()
+                    
+                    
+                    if isSearchFocused && !itemName.isEmpty {
+                        let rowHeight: CGFloat = 52
+                        let maxVisibleRows: CGFloat = 4
+                        
+                        VStack(spacing: 0){
+                            if(!suggestions.isEmpty){
+                                ScrollView{
+                                    VStack(spacing: 0){
+                                        ForEach(suggestions, id: \.self){ suggestion in
+                                            Button(action: {
+                                                itemName = suggestion
+                                                isSearchFocused = false
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "magnifyingglass")
+                                                        .foregroundColor(.secondary)
+                                                        .font(.caption)
+                                                    highlightedText(suggestion, match: itemName)
+                                                    Spacer()
+                                                }
+                                                .padding()
+                                            }
+                                            .buttonStyle(.plain)
+                                            Divider()
+                                        }
+                                    }
+                                }
+                                .frame(height: min(CGFloat(suggestions.count) * rowHeight, maxVisibleRows * rowHeight))
+                            }
                             Button(action: {
-                                itemName = suggestion
                                 isSearchFocused = false
                             }) {
                                 HStack {
-                                    Image(systemName: "magnifyingglass")
+                                    Image(systemName: "plus")
                                         .foregroundColor(.secondary)
-                                        .font(.caption)
-                                    highlightedText(suggestion, match: itemName)
+                                    Text("Add \"\(itemName)\" as custom item")
                                     Spacer()
                                 }
                                 .padding()
+                                .foregroundColor(.primary)
                             }
                             .buttonStyle(.plain)
-                            Divider()
                         }
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+                
+                Spacer()
+                VStack(alignment: .leading, spacing: 12){
+                    Text("Quantity")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack (spacing: 0){
+                        Button(action: {if quantity > 1 { quantity -= 1} }) {
+                            Image(systemName: "minus")
+                                .frame(width: 44, height: 44)
+                                .background(Color(.systemBackground))
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
                         
-                        Button(action: { isSearchFocused = false}) {
-                            HStack {
-                                Image(systemName: "plus")
-                                    .foregroundColor(.secondary)
-                                Text("Add \"\(itemName)\" as custom item")
-                                Spacer()
-                            }
-                            .padding()
-                            .foregroundColor(.primary)
+                        Divider().frame(height: 24)
+                        
+                        Text("\(quantity)")
+                            .font(.title3.bold())
+                            .frame(width: 60, height: 44)
+                        
+                        Divider().frame(height: 24)
+                        
+                        Button(action: {quantity += 1}) {
+                            Image(systemName: "plus")
+                                .frame(width: 44, height: 44)
+                                .background(Color(.systemBackground))
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+
                         }
                         .buttonStyle(.plain)
                     }
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .padding(.horizontal)
+                    .background(Color(.systemBackground))
+                    .overlay(RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                    )
+                    .fixedSize()
                 }
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .leading, spacing: 12){
-                Text("Quantity")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+
                 
-                HStack{
-                    Button(action: {if quantity > 1 { quantity -= 1} }) {
-                        Image(systemName: "minus")
-                            .frame(width: 44, height: 44)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    
-                    Text("\(quantity)")
-                        .font(.title3.bold())
-                        .frame(width: 60, height: 44)
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    
-                    Button(action: {quantity += 1}) {
-                        Image(systemName: "plus")
-                            .frame(width: 44, height: 44)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
+                Button(action: {
+                    guard !itemName.isEmpty else {return }
+                    onAdd(itemName, quantity)
+                    dismiss()
+                }) {
+                    Text("ADD NEW ITEM")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(red: 0.35, green: 0.4, blue: 0.25))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .padding(.vertical)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 24)
             
-            Button(action: {
-                guard !itemName.isEmpty else {return }
-                onAdd(itemName, quantity)
-                dismiss()
-            }) {
-                Text("ADD")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(red: 0.35, green: 0.4, blue: 0.25))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .padding()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(red: 0.98, green: 0.96, blue: 0.92))
     }
     
@@ -160,6 +195,6 @@ struct AddItemSheet: View {
         let before = String(text[..<range.lowerBound])
         let matched = String(text[range])
         let after = String(text[range.upperBound...])
-        return Text(before) + Text(matched).bold() + Text(after)
+        return Text("\(before)\(Text(matched).bold())\(after)")
     }
 }
