@@ -26,6 +26,9 @@ struct pomoraApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .tint(.PBrown)
+                .foregroundStyle(Color.PBrown)
+                .background(Color.background)
         }
         .modelContainer(sharedModelContainer)
     }

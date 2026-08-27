@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+//creates new grocery item object
 struct GroceryItem: Identifiable {
     let id = UUID();
     var name: String
