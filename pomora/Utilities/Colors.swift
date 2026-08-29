@@ -15,4 +15,5 @@ extension Color {
     static let PRed = Color(hex: "C72F2F")
     static let background = Color(hex: "FFFCF6")
     static let lightBack = Color(hex: "FFFEFC")
+    static let PGrey = Color(hex: "DDDDDD")
 }
