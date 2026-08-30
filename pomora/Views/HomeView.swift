@@ -27,6 +27,7 @@ struct ScrollOffsetKey: PreferenceKey {
     }
 }
 
+//hi hi hi test test test
 struct HomeView: View {
     // Controls whether the "Add New Item" sheet is currently showing.
     @State private var showAddItemSheet = false
