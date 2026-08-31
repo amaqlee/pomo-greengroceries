@@ -8,6 +8,7 @@
 
 // HomeView
 // The app's main/home screen. Shows:
+// (appears when selectedTab == .home in RootView)
 //   - A fixed header (logo, title, FRIDGE label, item count)
 //   - Two stat cards (Freshness % and Expiring Soon count) — also fixed
 //   - A scrollable list of grocery items (FoodItemRow for each one)
@@ -27,7 +28,6 @@ struct ScrollOffsetKey: PreferenceKey {
     }
 }
 
-//hi hi hi test test test
 struct HomeView: View {
     // Controls whether the "Add New Item" sheet is currently showing.
     @State private var showAddItemSheet = false
@@ -60,160 +60,149 @@ struct HomeView: View {
     
     
     var body: some View {
+        //navigationStack wraps screen so .sheet(...) and future
+        //push styl navigation like tapping an item to see detail
+        //has proper nav context to work inside of
         NavigationStack {
-            // ZStack lets us layer the floating "Add New Item" button on top
-            // of the scrollable content, pinned to the bottom of the screen.
-            ZStack(alignment: .bottom) {
-                // Base background color, extended to fill the whole screen
-                // (including behind the notch/home indicator areas).
-                Color.background
-                    .ignoresSafeArea()
-                VStack(spacing: 0){
-                    // ---- Fixed header + stats section (does NOT scroll) ----
-                    VStack(spacing: 16){
-                        // App logo + wordmark + menu icon.
-                        HStack {
-                            Image("PomoLogo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 40, height: 40)
-                                .scaleEffect(2.2)
-                            Text("POMORA")
-                                .font(.title2.bold())
-                                .foregroundColor(Color.PBrown)
-                            Spacer()
-                            Image(systemName: "line.3.horizontal")
-                                .font(.title2)
-                        }
+            VStack(spacing: 0){
+                // ---- Fixed header + stats section (does NOT scroll) ----
+                VStack(spacing: 16){
+                    // "FRIDGE" label + item count badge.
+                    HStack {
+                        Text("FRIDGE")
+                            .font(.headline)
+                            .foregroundColor(Color.PBrown)
+                        Spacer()
                         
-                        // "FRIDGE" label + item count badge.
-                        HStack {
-                            Text("FRIDGE")
-                                .font(.headline)
-                                .foregroundColor(Color.PBrown)
-                            Spacer()
+                        //grouping item count and + button to the right
+                        HStack(spacing: 8){
                             Text("\(items.count) items")
                                 .font(.caption)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
                                 .background(Color(.systemGray5))
                                 .foregroundColor(Color.PBrown)
-                                .clipShape(Capsule())
-                        }
-                        
-                        // Freshness % and Expiring Soon count cards, side by side.
-                        HStack(spacing: 12) {
-                            StatCard(
-                                icon: "leaf.fill",
-                                title: "FRESHNESS",
-                                value: "\(freshnessPercent)%",
-                                backgroundColor: Color(hex: "D4E3C8"),
-                                borderColor: Color(hex: "BBC9A3"),
-                                textColor: Color.PDGreen
-                            )
-                            StatCard(
-                                icon: "exclamationmark.triangle.fill",
-                                title: "EXPIRING SOON",
-                                value: "\(expiringSoonCount)",
-                                backgroundColor: Color(hex: "FFDBD5"),
-                                borderColor: Color(hex: "EEA7A3"),
-                                textColor: Color.PDRed
-                            )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.PGrey, lineWidth: 1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            
+                            //add item button
+                            Button(action: {
+                                showAddItemSheet = true
+                            }) {
+                                HStack(spacing: 4){
+                                    Image(systemName: "plus")
+                                        .font(.caption.bold())
+                                    Text("ADD NEW ITEM")
+                                        .font(.caption.bold())
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "D4E3C8"))
+                                .foregroundColor(Color.PDGreen)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(hex: "BBC9A3"), lineWidth: 1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 12)
-                    // Solid background + zIndex(1) keep this header visually
-                    // "in front of" the scrolling list beneath it, so items
-                    // don't show through as they scroll past this section.
-                    .background(Color.background)
-                    .zIndex(1)
                     
-                    // ---- Scrollable grocery list (only this part scrolls) ----
-                    ScrollView {
-                        VStack(spacing: 12){
-                            if items.isEmpty {
-                                // Empty state, shown when there are no groceries at all.
-                                Text("NO FOOD YET!")
-                                    .font(.headline)
-                                    .foregroundColor(Color.PBrown)
-                                    .padding(.top, 180)
-                            }else{
-                                // One row per grocery item. Passing a binding ($item)
-                                // so quantity changes write back into the real array.
-                                ForEach($items) { $item in
-                                    FoodItemRow(item: $item){
-                                        // Runs when this item's quantity hits 0 —
-                                        // remove it from the list with a fade animation.
-                                        withAnimation {items.removeAll { $0.id == item.id }}
-                                    }
+                    // Freshness % and Expiring Soon count cards, side by side.
+                    HStack(spacing: 12) {
+                        StatCard(
+                            icon: "leaf.fill",
+                            title: "FRESHNESS",
+                            value: "\(freshnessPercent)%",
+                            backgroundColor: Color(hex: "D4E3C8"),
+                            borderColor: Color(hex: "BBC9A3"),
+                            textColor: Color.PDGreen
+                        )
+                        StatCard(
+                            icon: "exclamationmark.triangle.fill",
+                            title: "EXPIRING SOON",
+                            value: "\(expiringSoonCount)",
+                            backgroundColor: Color(hex: "FFDBD5"),
+                            borderColor: Color(hex: "EEA7A3"),
+                            textColor: Color.PDRed
+                        )
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
+                // Solid background + zIndex(1) keep this header visually
+                // "in front of" the scrolling list beneath it, so items
+                // don't show through as they scroll past this section.
+                //higher numbers draws on top
+                .background(Color.background)
+                .zIndex(1)
+                
+                // ---- Scrollable grocery list (only this part scrolls) ----
+                ScrollView {
+                    VStack(spacing: 12){
+                        if items.isEmpty {
+                            // Empty state, shown when there are no groceries at all.
+                            Text("NO FOOD YET!")
+                                .font(.headline)
+                                .foregroundColor(Color.PBrown)
+                                .padding(.top, 180)
+                        }else{
+                            // One row per grocery item. Passing a binding ($item)
+                            // so quantity changes write back into the real array.
+                            ForEach($items) { $item in
+                                FoodItemRow(item: $item){
+                                    // Runs when this item's quantity hits 0 —
+                                    // remove it from the list with a fade animation.
+                                    withAnimation {items.removeAll { $0.id == item.id }}
                                 }
                             }
                         }
-                        .padding(.top, 12)
-                        // leaves room so the last item isn't hidden under the floating button
-                        .padding(.bottom, 90)
-                        .background(
-                            // Invisible helper view that reports this content's
-                            // scroll position up via ScrollOffsetKey.
-                            GeometryReader { geo in
-                                Color.clear.preference(key: ScrollOffsetKey.self, value:
-                                geo.frame(in: .named("scroll")).minY)
-                            }
-                        )
                     }
-                    .coordinateSpace(name: "scroll")
-                    .onPreferenceChange(ScrollOffsetKey.self) { value in
-                        scrollOffset = value
-                    }
-                }
-                
-                // Scroll-hint chevron (currently disabled). Was meant to show a
-                // "scroll for more" arrow when there are more than 4 items and
-                // the user hasn't scrolled yet.
-                
-//                if items.count > 4 && scrollOffset > -10 {
-//                    VStack {
-//                        Image(systemName: "chevron.down")
-//                            .font(.title3.bold())
-//                            .foregroundColor(.secondary)
-//                            .padding(10)
-//                            .background(Color(.systemBackground))
-//                            .clipShape(Circle())
-//                            .shadow(radius: 2)
-//                    }
-//                    .padding(.bottom, 80)
-//                    .transition(.opacity)
-//                    .animation(.easeInOut, value: scrollOffset)
-//                }
-                
-                // ---- Floating "Add New Item" button (always visible, bottom of screen)
-                Button(action: {
-                    showAddItemSheet = true
-                }){
-                    Text("ADD NEW ITEM")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.PDGreen)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                .padding()
-                // Subtle gradient fade behind the button so scrolled items
-                // fade out smoothly instead of getting cut off abruptly
-                .background(
-                    LinearGradient(
-                        colors: [Color(.systemBackground).opacity(0), Color(.systemBackground)],
-                        startPoint: .top, endPoint: .bottom
+                    .padding(.top, 12)
+                    // leaves room so the last item isn't hidden under the floating button
+                    .padding(.bottom, 90)
+                    .background(
+                        // Invisible helper view that reports this content's
+                        // scroll position up via ScrollOffsetKey.
+                        GeometryReader { geo in
+                            Color.clear.preference(key: ScrollOffsetKey.self, value:
+                            geo.frame(in: .named("scroll")).minY)
+                        }
                     )
-                    .frame(height: 90)
-                    .allowsHitTesting(false),
-                    alignment: .top
-                )
+                }
+                //names this "scroll" so GeometryReader above and measure position
+                //relative to it, not the whole screen
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetKey.self) { value in
+                    scrollOffset = value
+                }
+                .background(Color.background)
+                
             }
             
+                
+                //replaced with button at the top
+                // ---- Floating "Add New Item" button (always visible, bottom of screen)
+               
+//                Button(action: {
+//                    showAddItemSheet = true
+//                }){
+//                    Text("ADD NEW ITEM")
+//                        .font(.headline)
+//                        .foregroundColor(.white)
+//                        .frame(maxWidth: .infinity)
+//                        .padding()
+//                        .background(Color.PDGreen)
+//                        .clipShape(RoundedRectangle(cornerRadius: 10))
+//                }
+//                .padding()
+            
             // Shows the Add Item popup sheet when showAddItemSheet is true.
+            //.sheet is built in way of presenting a modal popup that slides up from bottom
             .sheet(isPresented: $showAddItemSheet) {
                 AddItemSheet { name, qty in
                     // Called when the user taps "ADD NEW ITEM" inside the sheet

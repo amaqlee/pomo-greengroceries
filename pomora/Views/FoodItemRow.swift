@@ -64,9 +64,9 @@ struct FoodItemRow: View{
             .padding()
         }
         // Card styling: light gray background, thin border, rounded corners
-        .background(Color(.systemGray6))
+        .background(Color.PLGrey)
         .overlay(RoundedRectangle(cornerRadius: 8)
-            .stroke(Color(.systemGray4), lineWidth: 1)
+            .stroke(Color.PGrey, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.horizontal)

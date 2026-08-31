@@ -4,12 +4,14 @@
 //
 //  Created by Amanda Lee on 8/22/26.
 //
+//App's entry point, the @main struct is what iOS launches first when the app opens
 
 import SwiftUI
 import SwiftData
 
 @main
 struct pomoraApp: App {
+    //sets up swiftdata's storage container for the item model
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -25,7 +27,7 @@ struct pomoraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .tint(.PBrown)
                 .foregroundStyle(Color.PBrown)
                 .background(Color.background)

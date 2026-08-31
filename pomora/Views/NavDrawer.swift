@@ -4,9 +4,15 @@
 //
 //  Created by Kimiko Low on 8/26/26.
 //
+//defines the slide in navigation drawer menu and a reusable
+//modifier that lets an screen say ".navigationDrawerOverlay(isOpen: $x)"
+//to get that sliding drawer behavior
+
 
 import SwiftUI
 
+//simple data model for one row in the drawer's menu list (About, Shopping List, Trends)
+//identifiable means it has a unique id, which lets ForEach tell ea row apart
 struct DrawerMenuItem: Identifiable {
     let id = UUID()  // unique ID auto-generated for each item
     let title: String   // text shown nex to the icon, e.g. "ABOUT"
@@ -15,19 +21,20 @@ struct DrawerMenuItem: Identifiable {
 
 // ViewModifier is what allows us to have the nav drawer show up over any exisiting string that
 // attach .withNavigationDrawer to
-// TODO: - HomeView needs some edits for this to work as intended
-//      1. add '@State private var showDrawer = false' near other @State vars
-//      2. Wrap its exisiting hamburger image in a button that does
-//         'withAnimation(.easeInOut(duration: 0.25)) { showDrawer.toggle() }'
-//      3. Add '.navigationDrawerOverlay(isOpen: $showDrawer)' onto the outer ZStack,
-//         alongside its existing .sheed(..) and .navigationBarHidden(true).
+
 struct NavigationDrawerOverlay: ViewModifier {
     // tells us if the drawer is open
+    //binding so that when the drawer or dimmer background sets "isOpen = false",
+    //that changes flows back up and updates the real @State variable in whatever screen
+    //(Rootview) is using this modifier
     @Binding var isOpen: Bool
     
     func body(content: Content) -> some View {
+        //Zstack layers views on top of ea other in order listed, first = bottom, last = top
+        //.alignment: leading means drawer sticks to left edge
         ZStack(alignment: .leading) {
             // layer 1: whatever screen called .withNavigationDrawer()
+            content
             
             // layer 2: the middle aka the tap-to-dismiss overlay
             if isOpen {
@@ -51,12 +58,14 @@ struct NavigationDrawerOverlay: ViewModifier {
     }
 }
 
+//wrapper for convenience to call showDrawer
 extension View {
-    func navigationDrawerOverla(isOpen: Binding<Bool>) -> some View {
+    func navigationDrawerOverlay(isOpen: Binding<Bool>) -> some View {
         modifier(NavigationDrawerOverlay(isOpen: isOpen))
     }
 }
 
+//Drawer's actual content
 struct NavigationDrawerModifer: ViewModifier {
     @State private var isDrawerOpen = false
     
@@ -111,7 +120,7 @@ struct NavigationDrawerView: View {
         VStack(alignment: .leading, spacing: 0) {  // stacks everything vertically and makes it left aligned
             // top of nav drawer  (avatar + username)
             HStack(spacing: 14) {
-                ZStack {  // layers the circle backgroun behind the avatar
+                ZStack {  // layers the circle background behind the avatar
                     Circle()
                         .fill(Color.background)
                         .frame(width: 44, height: 44)
@@ -131,7 +140,7 @@ struct NavigationDrawerView: View {
             .padding(.top, 28)
             .padding(.bottom, 20)
             
-            // the think horizontal line separating the (avatar + username) from the menu items
+            // the thin horizontal line separating the (avatar + username) from the menu items
             Divider()
                 .overlay(Color.PGrey)
                 .padding(.horizontal, 24)
@@ -198,3 +207,5 @@ struct NavigationDrawerView: View {
         .background(Color.background)
     }
 }
+
+

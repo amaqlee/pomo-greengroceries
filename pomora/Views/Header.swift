@@ -22,6 +22,7 @@ struct Header: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 36, height: 36)
+                        .scaleEffect(2.8)
                     Text("POMORA")
                         .font(.title2.bold())
                         .foregroundStyle(Color.PBrown)
@@ -43,7 +44,8 @@ struct Header: View {
             }
         }
         .padding(.horizontal)
-        .padding(.vertical, 14)
+        .padding(.top, 0)
+        .padding(.bottom, 14)
         .background(Color.background)
     }
 }
