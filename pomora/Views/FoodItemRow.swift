@@ -12,6 +12,9 @@ import SwiftUI
 // badge both turn red if the item is expiring soon, or green if it's still fresh.
 // If the user decrements quantity down to 0, this row tells HomeView to remove
 // the item entirely via the onQuantityZero callback.
+
+//if user taps the X in top right corner, row doesn't delete anything itself,
+//just tells homeview the user wants to delete
 struct FoodItemRow: View{
     // A binding (not just a value) so changes made here, like the quantity
     // stepper, write directly back into the real `items` array in HomeView,
@@ -21,6 +24,9 @@ struct FoodItemRow: View{
     // Callback fired when this item's quantity reaches 0, telling HomeView
     // to remove it from the list.
     var onQuantityZero: () -> Void
+    
+    //Callback fired when the user taps the X button.
+    var onDeleteTapped: () -> Void
     
     var body : some View {
         HStack(spacing: 0){
@@ -45,6 +51,18 @@ struct FoodItemRow: View{
                         .foregroundColor(item.isExpiringSoon ? Color.PRed : Color.PDGreen)
                         .clipShape(Capsule())
                 }
+                
+                //Delete (X) button
+                Button(action: onDeleteTapped){
+                    Image(systemName: "xmark")
+                        .font(.caption.bold())
+                        .foregroundColor(Color.PBrown.opacity(0.5))
+                    //internal padding to make tappable area bigger
+                        .padding(6)
+                    //content shape makes entire padded square tappable
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
                 
                 // Bottom row: quantity stepper (- / count / +).
                 HStack {

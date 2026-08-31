@@ -14,7 +14,9 @@
 //   - A scrollable list of grocery items (FoodItemRow for each one)
 //   - A floating "ADD NEW ITEM" button pinned to the bottom
 // Tapping "ADD NEW ITEM" opens AddItemSheet, which sends new items back here
-// through a closure. Grocery data currently lives in a local @State array
+// through a closure.
+// Tapping the X on a row asks HomeView to confirm deletion via a DeleteConfirmationCard
+// Grocery data currently lives in a local @State array
 // (mock data). this will later be replaced with real persisted storage
 import SwiftUI
 
@@ -44,6 +46,14 @@ struct HomeView: View {
     // Tracks the grocery list's current scroll position (used for the
     // scroll-hint chevron feature, currently disabled/commented out).
     @State private var scrollOffset: CGFloat = 0
+    
+    //which item (if any) the user has tapped the X on and is being asked to confirm deletion
+    @State private var itemPendingDelete: GroceryItem? = nil
+    
+    //smalle helper to drive .animation(...) off a boolean
+    private var isShowingDeleteConfirmation: Bool {
+        itemPendingDelete != nil
+    }
     
     // Number of items that count as "expiring soon": supports the expiring soon card
     var expiringSoonCount: Int {
@@ -154,17 +164,24 @@ struct HomeView: View {
                             // One row per grocery item. Passing a binding ($item)
                             // so quantity changes write back into the real array.
                             ForEach($items) { $item in
-                                FoodItemRow(item: $item){
-                                    // Runs when this item's quantity hits 0 —
-                                    // remove it from the list with a fade animation.
-                                    withAnimation {items.removeAll { $0.id == item.id }}
-                                }
+                                FoodItemRow(
+                                    item: $item,
+                                    onQuantityZero: {
+                                        //runs when quantity hits 0
+                                        //remove from list with a fade
+                                        withAnimation {items.removeAll { $0.id == item.id }}
+                                    },
+                                    onDeleteTapped: {
+                                        //runs when X button is tapped
+                                        itemPendingDelete = item
+                                    }
+                                )
                             }
                         }
                     }
                     .padding(.top, 12)
                     // leaves room so the last item isn't hidden under the floating button
-                    .padding(.bottom, 90)
+                    .padding(.bottom, 24)
                     .background(
                         // Invisible helper view that reports this content's
                         // scroll position up via ScrollOffsetKey.
@@ -180,29 +197,40 @@ struct HomeView: View {
                 .onPreferenceChange(ScrollOffsetKey.self) { value in
                     scrollOffset = value
                 }
-                .background(Color.background)
                 
             }
+            .background(Color.background.ignoresSafeArea())
             
-                
-                //replaced with button at the top
-                // ---- Floating "Add New Item" button (always visible, bottom of screen)
-               
-//                Button(action: {
-//                    showAddItemSheet = true
-//                }){
-//                    Text("ADD NEW ITEM")
-//                        .font(.headline)
-//                        .foregroundColor(.white)
-//                        .frame(maxWidth: .infinity)
-//                        .padding()
-//                        .background(Color.PDGreen)
-//                        .clipShape(RoundedRectangle(cornerRadius: 10))
-//                }
-//                .padding()
+            //delete confirmation overlay
+            //only appears when itemPendingDelete is non-nil
+            //covers screen w dimmed scrim + confirmation card
+            .overlay {
+                if let item = itemPendingDelete{
+                    ZStack{
+                        Color.black.opacity(0.25)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                itemPendingDelete = nil
+                            }
+                        
+                        DeleteConfirmationCard(
+                            itemName: item.name,
+                            onCancel: {
+                                itemPendingDelete = nil
+                            },
+                            onDelete: {
+                                withAnimation{
+                                    items.removeAll { $0.id == item.id }
+                                }
+                                itemPendingDelete = nil
+                            }
+                        )
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: isShowingDeleteConfirmation)
             
-            // Shows the Add Item popup sheet when showAddItemSheet is true.
-            //.sheet is built in way of presenting a modal popup that slides up from bottom
             .sheet(isPresented: $showAddItemSheet) {
                 AddItemSheet { name, qty in
                     // Called when the user taps "ADD NEW ITEM" inside the sheet
