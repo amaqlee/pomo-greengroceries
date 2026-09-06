@@ -5,8 +5,8 @@
 //  Created by Amanda Lee on 8/31/26.
 //
 
-//are you sure you want to delte
-//used by homeview when a FootItemRow's X button is tapped
+//Generates an confirmation popup to delete a grocery item.
+//Used by homeview when a FootItemRow's X button is tapped
 
 import SwiftUI
 
@@ -23,24 +23,28 @@ struct DeleteConfirmationCard: View {
     
     
     var body: some View {
-        VStack(spacing: 16){
+        //alignment: .leading so title and body are left aligned
+        VStack(alignment: .leading, spacing: 20){
             Text("Remove item?")
                 .font(.headline)
                 .foregroundColor(Color.PBrown)
             
-            Text("This will remove \u{201C}\(itemName)\u{201D} from your fridge.")
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .foregroundColor(Color.PBrown.opacity(0.75))
+            Text("This will remove \(Text(itemName).bold()) from your fridge.")
+                .font(.body)
+                .foregroundColor(Color.PBrown.opacity(0.85))
+                //lets text wrap across multiple lines
+                .fixedSize(horizontal: false, vertical: true)
             
             //cancel + delete buttons side by side
             HStack(spacing: 12){
+                Spacer()
                 Button(action: onCancel){
                     Text("CANCEL")
                         .font(.subheadline.bold())
                         .foregroundColor(Color.PBrown)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.PLGrey)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(Color.PGrey, lineWidth: 1)
@@ -52,17 +56,17 @@ struct DeleteConfirmationCard: View {
                     Text("REMOVE")
                         .font(.subheadline.bold())
                         .foregroundColor(Color.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color.PRed)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.PDRed)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(24)
+        .padding(28)
         //caps how wide card gets on larger screens
-        .frame(maxWidth: 300)
+        .frame(maxWidth: 340)
         .background(Color.background)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
@@ -70,4 +74,8 @@ struct DeleteConfirmationCard: View {
                 .stroke(Color.PGrey, lineWidth: 1)
         )
     }
+}
+
+#Preview {
+    DeleteConfirmationCard(itemName: "Pasture Eggs", onCancel: {}, onDelete: {})
 }
