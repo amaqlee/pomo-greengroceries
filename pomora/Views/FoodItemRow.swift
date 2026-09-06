@@ -52,18 +52,6 @@ struct FoodItemRow: View{
                         .clipShape(Capsule())
                 }
                 
-                //Delete (X) button
-                Button(action: onDeleteTapped){
-                    Image(systemName: "xmark")
-                        .font(.caption.bold())
-                        .foregroundColor(Color.PBrown.opacity(0.5))
-                    //internal padding to make tappable area bigger
-                        .padding(6)
-                    //content shape makes entire padded square tappable
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                
                 // Bottom row: quantity stepper (- / count / +).
                 HStack {
                     Stepper(value: $item.quantity, in: 0...99){
@@ -87,6 +75,22 @@ struct FoodItemRow: View{
             .stroke(Color.PGrey, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        //floating X button to delete
+        .overlay(alignment: .topTrailing){
+            Button(action: onDeleteTapped){
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color.PBrown.opacity(0.6))
+                    .frame(width: 22, height: 22)
+                    .background(Color.lightBack)
+                    .overlay(
+                        Circle().stroke(Color.PGrey, lineWidth: 1)
+                    )
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .offset(x: 8, y: -8)
+        }
         .padding(.horizontal)
     }
 }
