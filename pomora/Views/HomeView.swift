@@ -151,99 +151,64 @@ struct HomeView: View {
                 .background(Color.background)
                 .zIndex(1)
                 
-                // ---- Scrollable grocery list (only this part scrolls) ----
-                ScrollView {
-                    VStack(spacing: 12){
-                        if items.isEmpty {
-                            // Empty state, shown when there are no groceries at all.
-                            Text("NO FOOD YET!")
-                                .font(.headline)
-                                .foregroundColor(Color.PBrown)
-                                .padding(.top, 180)
-                        }else{
-                            // One row per grocery item. Passing a binding ($item)
-                            // so quantity changes write back into the real array.
-                            ForEach($items) { $item in
-                                FoodItemRow(
-                                    item: $item,
-                                    onQuantityZero: {
-                                        //runs when quantity hits 0
-                                        //remove from list with a fade
-                                        withAnimation {items.removeAll { $0.id == item.id }}
-                                    },
-                                    onDeleteTapped: {
-                                        //runs when X button is tapped
-                                        itemPendingDelete = item
-                                    }
-                                )
+                //swipe-to-delete is a List only feature
+                //style a list to look like a ScrollView
+                List {
+                    if items.isEmpty {
+                        //empty state, shown when there are no groceries
+                        Text("NO FOOD YET!")
+                            .font(.headline)
+                            .foregroundColor(Color.PBrown)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 180)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }else{
+                        //one row per grocery item, passing a binding ($item)
+                        //so quantity changes write back into real array
+                        ForEach($items) { $item in
+                            FoodItemRow(
+                                item: $item,
+                                onQuantityZero: {
+                                    //runs when item quantity hits 0
+                                    //removes item with a fade animation
+                                    withAnimation{items.removeAll {$0.id == item.id}}
+                                }
+                            )
+                            //hides default List appearance
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                            //edge: .trailing means swipe from right to left activates delete
+                            //sets itemPendingDelete
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true){
+                                Button(role: .destructive) {
+                                    itemPendingDelete = item
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .tint(Color.PRed)
                             }
                         }
                     }
-                    .padding(.top, 12)
-                    // leaves room so the last item isn't hidden under the floating button
-                    .padding(.bottom, 24)
-                    .background(
-                        // Invisible helper view that reports this content's
-                        // scroll position up via ScrollOffsetKey.
-                        GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetKey.self, value:
-                            geo.frame(in: .named("scroll")).minY)
-                        }
-                    )
                 }
-                //names this "scroll" so GeometryReader above and measure position
-                //relative to it, not the whole screen
-                .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetKey.self) { value in
-                    scrollOffset = value
-                }
-                
+                .listStyle(.plain)
+                //lets background color show through
+                .scrollContentBackground(.hidden)
+                .background(Color.background)
             }
             .background(Color.background.ignoresSafeArea())
-            
-            //delete confirmation overlay
-            //only appears when itemPendingDelete is non-nil
-            //covers screen w dimmed scrim + confirmation card
-            .overlay {
-                if let item = itemPendingDelete{
-                    ZStack{
-                        Color.black.opacity(0.25)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                itemPendingDelete = nil
-                            }
-                        
-                        DeleteConfirmationCard(
-                            itemName: item.name,
-                            onCancel: {
-                                itemPendingDelete = nil
-                            },
-                            onDelete: {
-                                withAnimation{
-                                    items.removeAll { $0.id == item.id }
-                                }
-                                itemPendingDelete = nil
-                            }
-                        )
-                    }
-                    .transition(.opacity)
-                }
-            }
-            .animation(.easeInOut(duration: 0.2), value: isShowingDeleteConfirmation)
-            
-            .sheet(isPresented: $showAddItemSheet) {
-                AddItemSheet { name, qty in
-                    // Called when the user taps "ADD NEW ITEM" inside the sheet
-                    // appends a new GroceryItem to our list.
-                    items.append(GroceryItem(name: name, quantity: qty, daysUntilExpiration: 7))
-                }
-                .presentationDetents([.height(590)]) // fixed sheet height
-                .presentationDragIndicator(.hidden) // using our own custom drag handle instead
+            //fades where list meets footer
+            .overlay(alignment: .bottom){
+                LinearGradient(
+                    colors: [Color.background.opacity(0), Color.background],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 60)
+                .allowsHitTesting(false)
             }
         }
-        // Hides the (empty, unused) navigation bar so there's no extra
-        // blank space reserved at the top of the screen.
-        .navigationBarHidden(true)
     }
 }
 

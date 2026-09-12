@@ -13,8 +13,7 @@ import SwiftUI
 // If the user decrements quantity down to 0, this row tells HomeView to remove
 // the item entirely via the onQuantityZero callback.
 
-//if user taps the X in top right corner, row doesn't delete anything itself,
-//just tells homeview the user wants to delete
+//deletion occurs via swipe-to-delete
 struct FoodItemRow: View{
     // A binding (not just a value) so changes made here, like the quantity
     // stepper, write directly back into the real `items` array in HomeView,
@@ -24,9 +23,6 @@ struct FoodItemRow: View{
     // Callback fired when this item's quantity reaches 0, telling HomeView
     // to remove it from the list.
     var onQuantityZero: () -> Void
-    
-    //Callback fired when the user taps the X button.
-    var onDeleteTapped: () -> Void
     
     var body : some View {
         HStack(spacing: 0){
@@ -75,22 +71,6 @@ struct FoodItemRow: View{
             .stroke(Color.PGrey, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))
-        //floating X button to delete
-        .overlay(alignment: .topTrailing){
-            Button(action: onDeleteTapped){
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color.PBrown.opacity(0.6))
-                    .frame(width: 22, height: 22)
-                    .background(Color.lightBack)
-                    .overlay(
-                        Circle().stroke(Color.PGrey, lineWidth: 1)
-                    )
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .offset(x: 8, y: -8)
-        }
         .padding(.horizontal)
     }
 }
