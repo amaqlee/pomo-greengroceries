@@ -208,7 +208,45 @@ struct HomeView: View {
                 .frame(height: 60)
                 .allowsHitTesting(false)
             }
+            //delete confirmation overlar
+            .overlay {
+                if let item = itemPendingDelete {
+                    ZStack {
+                        Color.black.opacity(0.25)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                itemPendingDelete = nil
+                            }
+                        DeleteConfirmationCard(
+                            itemName: item.name,
+                            onCancel: {
+                                itemPendingDelete = nil
+                            },
+                            onDelete: {
+                                withAnimation{
+                                    items.removeAll { $0.id == item.id }
+                                }
+                                itemPendingDelete = nil
+                            }
+                        )
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: isShowingDeleteConfirmation)
+            
+            //shows the add item popup
+            .sheet(isPresented: $showAddItemSheet) {
+                AddItemSheet { name, qty in
+                    //called when user taps "ADD NEW ITEM"
+                    //TODO: change so daysUntilExpiration isn't hardcoded
+                    items.append(GroceryItem(name : name, quantity: qty, daysUntilExpiration: 7))
+                }
+                .presentationDetents([.height(590)]) //fixed sheet height
+                .presentationDragIndicator(.hidden)
+            }
         }
+        .navigationBarHidden(true)
     }
 }
 
