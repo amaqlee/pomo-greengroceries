@@ -241,6 +241,7 @@ struct HomeView: View {
                 AddItemSheet { name, qty in
                     //called when user taps "ADD NEW ITEM"
                     //TODO: change so daysUntilExpiration isn't hardcoded
+                    //TODO: items should be listed based on soonest expiration date
                     items.append(GroceryItem(name : name, quantity: qty, daysUntilExpiration: 7))
                 }
                 .presentationDetents([.height(590)]) //fixed sheet height
