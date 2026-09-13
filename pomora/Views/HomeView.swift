@@ -151,51 +151,52 @@ struct HomeView: View {
                 .background(Color.background)
                 .zIndex(1)
                 
-                //swipe-to-delete is a List only feature
-                //style a list to look like a ScrollView
-                List {
-                    if items.isEmpty {
-                        //empty state, shown when there are no groceries
-                        Text("NO FOOD YET!")
-                            .font(.headline)
-                            .foregroundColor(Color.PBrown)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 180)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                    }else{
-                        //one row per grocery item, passing a binding ($item)
-                        //so quantity changes write back into real array
-                        ForEach($items) { $item in
-                            FoodItemRow(
-                                item: $item,
-                                onQuantityZero: {
-                                    //runs when item quantity hits 0
-                                    //removes item with a fade animation
-                                    withAnimation{items.removeAll {$0.id == item.id}}
-                                }
-                            )
-                            //hides default List appearance
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                            //edge: .trailing means swipe from right to left activates delete
-                            //sets itemPendingDelete
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true){
-                                Button(role: .destructive) {
-                                    itemPendingDelete = item
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                .tint(Color.PRed)
+                //scrollable grocery list
+                //swith swipe to delete feature
+                ScrollView {
+                    VStack(spacing: 12){
+                        if items.isEmpty {
+                            //empty state, shown when there are no groceries
+                            Text("NO FOOD YET!")
+                                .font(.headline)
+                                .foregroundColor(Color.PBrown)
+                                .padding(.top, 180)
+                        }else{
+                            //one row per grocery item, passing a binding ($item)
+                            //so quantity changes write back into real array
+                            ForEach($items) { $item in
+                                FoodItemRow(
+                                    item: $item,
+                                    onQuantityZero: {
+                                        //runs when item quantity hits 0
+                                        //removes item with a fade animation
+                                        withAnimation{items.removeAll {$0.id == item.id}}
+                                    },
+                                    onDeleteTapped: {
+                                        //runs when revealed delete button is tapped after swiping
+                                        itemPendingDelete = item
+                                    }
+                                )
+                                
                             }
                         }
                     }
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
+                    .background(
+                        //reports this contents scroll position
+                        GeometryReader{ geo in
+                            Color.clear.preference(key: ScrollOffsetKey.self,
+                                value: geo.frame(in: .named("scroll")).minY)
+                        }
+                    )
                 }
-                .listStyle(.plain)
-                //lets background color show through
-                .scrollContentBackground(.hidden)
-                .background(Color.background)
+                //names this "scroll" so georeader measure position relative to it not whole screen
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetKey.self) { value in
+                    scrollOffset = value
+                }
+                    
             }
             .background(Color.background.ignoresSafeArea())
             //fades where list meets footer
@@ -208,7 +209,7 @@ struct HomeView: View {
                 .frame(height: 60)
                 .allowsHitTesting(false)
             }
-            //delete confirmation overlar
+            //delete confirmation overlay
             .overlay {
                 if let item = itemPendingDelete {
                     ZStack {
@@ -233,7 +234,7 @@ struct HomeView: View {
                     .transition(.opacity)
                 }
             }
-            .animation(.easeInOut(duration: 0.2), value: isShowingDeleteConfirmation)
+            .animation(.easeInOut(duration: 0.4), value: isShowingDeleteConfirmation)
             
             //shows the add item popup
             .sheet(isPresented: $showAddItemSheet) {
