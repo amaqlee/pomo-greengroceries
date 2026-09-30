@@ -11,4 +11,6 @@ enum Apptab {
     case home
     case search
     case profile
+    case about
+    case shoppingList
 }

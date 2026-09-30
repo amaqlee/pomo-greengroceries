@@ -28,6 +28,8 @@ struct NavigationDrawerOverlay: ViewModifier {
     //that changes flows back up and updates the real @State variable in whatever screen
     //(Rootview) is using this modifier
     @Binding var isOpen: Bool
+    @Binding var selectedTab: Apptab
+    
     
     func body(content: Content) -> some View {
         //Zstack layers views on top of ea other in order listed, first = bottom, last = top
@@ -47,9 +49,16 @@ struct NavigationDrawerOverlay: ViewModifier {
                     }
             }
             
+            // NEW
             // layer 3: the sliding draer panel
             if isOpen {
-                NavigationDrawerView(isOpen: $isOpen)
+                NavigationDrawerView(isOpen: $isOpen, onSelectAbout: {
+                    isOpen = false
+                    selectedTab = .about
+                }, onSelectShoppingList: {
+                    isOpen = false
+                    selectedTab = .shoppingList
+                })
                     .frame(width: 320)
                     .transition(.move(edge: .leading))
                     .zIndex(1)
@@ -60,46 +69,8 @@ struct NavigationDrawerOverlay: ViewModifier {
 
 //wrapper for convenience to call showDrawer
 extension View {
-    func navigationDrawerOverlay(isOpen: Binding<Bool>) -> some View {
-        modifier(NavigationDrawerOverlay(isOpen: isOpen))
-    }
-}
-
-//Drawer's actual content
-struct NavigationDrawerModifer: ViewModifier {
-    @State private var isDrawerOpen = false
-    
-    // SwiftUI calls this automatically and hands us the view the modifer was attached
-    // to as "content" - whatever screen was underneath
-    func body(content: Content) -> some View {
-        ZStack(alignment: .leading) {
-            // layer 1: whatever screen called .withNavigationDrawer()
-            
-            // layer 2: dimmer overlay - same as above
-            if isDrawerOpen {
-                Color.black.opacity(0.25)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            isDrawerOpen = false
-                        }
-                    }
-            }
-            
-            // layer 3: the sliding panel
-            if isDrawerOpen {
-                NavigationDrawerView(isOpen: $isDrawerOpen)
-                    .frame(width: 320)
-                    .transition(.move(edge: .leading))
-                    .zIndex(1)
-            }
-        }
-    }
-}
-
-extension View {
-    func navigationDrawerOverlap(isOpen: Binding<Bool>) -> some View {
-        modifier(NavigationDrawerOverlay(isOpen: isOpen))
+    func navigationDrawerOverlay(isOpen: Binding<Bool>, selectedTab: Binding<Apptab>) -> some View {
+        modifier(NavigationDrawerOverlay(isOpen: isOpen, selectedTab: selectedTab))
     }
 }
 
@@ -109,6 +80,11 @@ extension View {
 struct NavigationDrawerView: View {
     @Binding var isOpen: Bool //shares same value as showDrawer in whichever screen presents this
     
+    //  TODO: figure out what this means
+    var onSelectAbout: () -> Void
+    
+    var onSelectShoppingList: () -> Void
+
     //3 menu rows shown in the drawer
     private let menuItems: [DrawerMenuItem] = [
         DrawerMenuItem(title: "ABOUT", systemImage: "info.circle"),
@@ -151,8 +127,13 @@ struct NavigationDrawerView: View {
                 // for each loop goes through the array we made earlier and builds a row with buttons for each item
                 ForEach(menuItems) { item in
                     Button {
-                        // TODO: navigate to the relevant screen based on item.title
+                        // navigates to the relevant screen based on item.title
                         // e.g. if item.title == "ABOUT" {...go to ABOUT screen...}
+                        if item.title == "ABOUT" {
+                            onSelectAbout()
+                        } else if item.title == "SHOPPING LIST" {
+                            onSelectShoppingList()
+                        }
                     } label: {
                         HStack(spacing: 16) {
                             Image(systemName: item.systemImage)
@@ -205,6 +186,7 @@ struct NavigationDrawerView: View {
         }
         .frame(maxHeight: .infinity) // makes drawer stretch the full screen height
         .background(Color.background)
+        
     }
 }
 

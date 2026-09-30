@@ -24,6 +24,8 @@ struct ShoppingListView: View {
         ShoppingItem(name: "Milk", quantity: 1),
     ]
     
+    @State private var showConfirmationCard = false
+    
     var body: some View {
         VStack(spacing: 0) {
             // Title ("shopping list") + item count + add item button
@@ -34,18 +36,25 @@ struct ShoppingListView: View {
                 Spacer()
                 
                 HStack(spacing: 8) {
-                    // item count label (same as from homeview)
-                    Text("\(items.count) items")
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color(.systemGray5))
-                        .foregroundColor(.PBrown)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.PGrey, lineWidth: 1)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    // clear list button
+                    Button {
+                        showConfirmationCard = true
+                    } label: {
+                        Text("CLEAR LIST")
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(items.isEmpty ? Color(.systemGray5) : Color(hex: "FFDBD5"))
+                            // changes button color to grey if list is empty
+                            .foregroundColor(items.isEmpty ? Color.PBrown : Color.PRed)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.PGrey, lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(items.isEmpty) // disables button if there are no items in shopping list
                     
                     // add new item button (same as from homeview)
                     Button {
@@ -54,7 +63,7 @@ struct ShoppingListView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
                                 .font(.caption.bold())
-                            Text("ADDN NEW ITEM")
+                            Text("ADD ITEM")
                                 .font(.caption.bold())
                         }
                         .padding(.horizontal, 12)
@@ -76,6 +85,7 @@ struct ShoppingListView: View {
             Divider()
                 .overlay(Color.PGrey)
                 .padding(.horizontal, 24)
+            
             
             
             // scrollable part of the screen containing the shopping list items
@@ -110,5 +120,37 @@ struct ShoppingListView: View {
             .presentationDetents([.height(590)])
             .presentationDragIndicator(.hidden)
         }
+        
+        // confrimation card appears when you try to clear list
+        .overlay {
+            if showConfirmationCard {
+                ZStack {
+                    // dimmed background, tapping it also cancels
+                    Color.black.opacity(0.25)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showConfirmationCard = false
+                        }
+                            
+                    ConfirmationCard(
+                        title: "Clear entire list?",
+                        message: "This will remove all \(items.count) items, checked and unchecked.",
+                        confirmLabel: "CLEAR LIST",
+                        onCancel: {
+                            showConfirmationCard = false
+                        },
+                        onConfirm: {
+                            withAnimation {
+                                items.removeAll()
+                            }
+                            showConfirmationCard = false
+                        }
+                    )
+                }
+                .transition(.opacity)
+            }
+        }
+        // Smoothly animate the card fading in and out
+        .animation(.easeInOut(duration: 0.3), value: showConfirmationCard)
     }
 }

@@ -47,5 +47,10 @@ struct Header: View {
         .padding(.top, 0)
         .padding(.bottom, 14)
         .background(Color.background)
+        .overlay(alignment: .bottom){
+            Rectangle()
+                .fill(Color.PGrey)
+                .frame(height: 0.5)
+        }
     }
 }

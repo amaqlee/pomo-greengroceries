@@ -47,7 +47,7 @@ struct RootView: View {
         .background(Color.background.ignoresSafeArea())
         //wraps everyting (header + content + footer) in zstack + slides drawer
         // on top of all when showDrawer becomes true
-        .navigationDrawerOverlay(isOpen: $showDrawer)
+        .navigationDrawerOverlay(isOpen: $showDrawer, selectedTab: $selectedTab)
     }
     
     //@ViewBuilder lets the computed property return SwiftUI view syntax
@@ -63,6 +63,10 @@ struct RootView: View {
             TabPlacedholderView(title: "RECIPES", systemImage: "magnifyingglass")
         case .profile:
             TabPlacedholderView(title: "PROFILE", systemImage: "person")
+        case .about:
+            AboutView()
+        case .shoppingList:
+            ShoppingListView()
         }
     }
     
